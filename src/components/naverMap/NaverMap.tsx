@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 interface NaverMapProps {
   isBackground?: boolean;
+  onLoad?: (map: naver.maps.Map) => void;
 }
 
-const NaverMap = ({ isBackground = true }: NaverMapProps) => {
+const NaverMap = ({ isBackground = true, onLoad }: NaverMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [location, setLocation] = useState<[number, number]>([
     37.5665, 126.978,
@@ -66,6 +67,11 @@ const NaverMap = ({ isBackground = true }: NaverMapProps) => {
         anchor: new naver.maps.Point(20, 20),
       },
     });
+
+    // 콜백으로 map 인스턴스 전달
+    if (onLoad && mapInstance.current) {
+      onLoad(mapInstance.current);
+    }
   }, [location]);
 
   // 배경 타입 전환
