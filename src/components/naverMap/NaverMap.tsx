@@ -1,5 +1,6 @@
 "use client";
 
+import { useMapStore } from "@/store/mapStore";
 import { useEffect, useRef, useState } from "react";
 
 interface NaverMapProps {
@@ -9,16 +10,14 @@ interface NaverMapProps {
 
 const NaverMap = ({ isBackground = true, onLoad }: NaverMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const [location, setLocation] = useState<[number, number]>([
-    37.5665, 126.978,
-  ]);
   const mapInstance = useRef<naver.maps.Map | null>(null);
+  const { currentLocation, setCurrentLocation } = useMapStore();
 
   // 지도 생성
   useEffect(() => {
     if (!window.naver || !mapRef.current) return;
 
-    const center = new naver.maps.LatLng(...location);
+    const center = new naver.maps.LatLng(...currentLocation);
 
     mapInstance.current = new naver.maps.Map(mapRef.current, {
       center,
@@ -72,7 +71,7 @@ const NaverMap = ({ isBackground = true, onLoad }: NaverMapProps) => {
     if (onLoad && mapInstance.current) {
       onLoad(mapInstance.current);
     }
-  }, [location]);
+  }, [currentLocation]);
 
   // 배경 타입 전환
   useEffect(() => {
@@ -91,7 +90,7 @@ const NaverMap = ({ isBackground = true, onLoad }: NaverMapProps) => {
 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setLocation([coords.latitude, coords.longitude]);
+        setCurrentLocation([coords.latitude, coords.longitude]);
       },
       (err) => {
         console.error("위치 에러:", err);

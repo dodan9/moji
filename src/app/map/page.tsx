@@ -4,12 +4,14 @@ import NaverMap from "@/components/naverMap/NaverMap";
 import { useEffect, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import axios from "axios";
+import { useCurrentLocation, useMapStore } from "@/store/mapStore";
 
 const MapPage = () => {
   const [center, setCenter] = useState<[number, number] | null>(null);
   const [region, setRegion] = useState<string | null>(null);
   const mapRef = useRef<naver.maps.Map | null>(null);
-  const markerRef = useRef<naver.maps.Marker | null>(null); // ✅ 단일 마커 참조
+  const markerRef = useRef<naver.maps.Marker | null>(null);
+  const currentLocation = useCurrentLocation();
 
   const fetchRegion = async (lat: number, lng: number) => {
     try {
@@ -40,12 +42,13 @@ const MapPage = () => {
 
     naver.maps.Event.addListener(map, "center_changed", updateCenter);
 
-    // ✅ 마커 최초 1회만 생성
     const initialPos = map.getCenter();
     const marker = new naver.maps.Marker({
       position: initialPos,
-      map: map,
+      map,
     });
+
+    updateCenter();
 
     markerRef.current = marker;
   };
@@ -53,23 +56,37 @@ const MapPage = () => {
   useEffect(() => {
     if (!center || !mapRef.current || !markerRef.current) return;
 
-    // ✅ 마커 위치 갱신
     const latlng = new naver.maps.LatLng(...center);
     markerRef.current.setPosition(latlng);
 
     fetchRegion(...center);
   }, [center]);
 
+  const moveToCurrentLocation = () => {
+    if (!mapRef.current || !markerRef.current || !currentLocation) return;
+
+    const pos = new naver.maps.LatLng(...currentLocation);
+    mapRef.current.setCenter(pos);
+    markerRef.current.setPosition(pos);
+    setCenter(currentLocation);
+  };
+
   return (
     <>
       <NaverMap onLoad={handleMapLoad} />
+      <button
+        onClick={moveToCurrentLocation}
+        className='fixed top-4 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded shadow'
+      >
+        현재 위치로 이동
+      </button>
       {center && (
-        <div className='fixed top-4 right-4 bg-white p-2 shadow rounded text-sm text-red-500'>
+        <div className='fixed top-14 right-4 bg-white p-2 shadow rounded text-sm text-red-500'>
           {center.join(", ")}
         </div>
       )}
       {region && (
-        <div className='fixed top-14 right-4 bg-white p-2 shadow rounded text-sm text-emerald-600'>
+        <div className='fixed top-24 right-4 bg-white p-2 shadow rounded text-sm text-emerald-600'>
           {region}
         </div>
       )}
