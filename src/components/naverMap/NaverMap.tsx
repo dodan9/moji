@@ -24,6 +24,9 @@ const NaverMap = ({ isBackground = true, onLoad }: NaverMapProps) => {
       zoom: 12,
       mapTypeControl: false,
       zoomControl: isBackground,
+      zoomControlOptions: {
+        position: naver.maps.Position.RIGHT_CENTER,
+      },
     });
 
     // blank 맵 등록 (등록은 별도로 가능)
